@@ -1,22 +1,26 @@
 package com.example.geoquiz
 
-import androidx.appcompat.app.AppCompatActivity
+import android.content.res.Configuration
+import android.graphics.PorterDuff
 import android.os.Bundle
-import android.view.Gravity
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
-import com.example.geoquiz.data.Question
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
+
 
 class MainActivity : AppCompatActivity() {
     private lateinit var buttonTrue: Button
     private lateinit var buttonFalse: Button
     private lateinit var buttonNext: Button
     private lateinit var textQuestion: TextView
-    private var index = 0
+    private lateinit var buttonPrevious: Button
+    private lateinit var imageButtonNext: ImageButton
+    private lateinit var imageButtonPrevious: ImageButton
+    private lateinit var viewModel: QuestionViewModel
 
-    private val questions = listOf(Question(R.string.question_africa,false),Question(R.string.question_americas,true),
-    Question(R.string.question_asia,true), Question(R.string.question_australia,true), Question(R.string.question_mideast,false),Question(R.string.question_oceans,true))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,28 +28,92 @@ class MainActivity : AppCompatActivity() {
         buttonTrue = findViewById(R.id.true_button)
         buttonFalse = findViewById(R.id.false_button)
         textQuestion = findViewById(R.id.question)
-        buttonNext = findViewById(R.id.next_button)
-        textQuestion.setText(questions[index].source)
+        viewModel =  ViewModelProvider(this).get(QuestionViewModel().javaClass)
+
+
+
+        if (Configuration.ORIENTATION_LANDSCAPE == resources.configuration.orientation) {
+            imageButtonNext = findViewById(R.id.imageButton_next)
+            imageButtonPrevious = findViewById(R.id.imageButton_previous)
+            imageButtonPrevious.setOnClickListener {
+                changeQuestion(IndexDirection.PREVIOUS)
+            }
+
+            imageButtonNext.setOnClickListener {
+                changeQuestion(IndexDirection.NEXT)
+            }
+        } else {
+            buttonNext = findViewById(R.id.next_button)
+            buttonPrevious = findViewById(R.id.previous_button)
+            buttonNext.setOnClickListener {
+                changeQuestion(IndexDirection.NEXT)
+            }
+
+            buttonPrevious.setOnClickListener {
+                changeQuestion(IndexDirection.PREVIOUS)
+            }
+        }
+
+        textQuestion.apply {
+            setText(viewModel.currentQuestion())
+            setOnClickListener { changeQuestion(IndexDirection.NEXT) }
+        }
 
 
         buttonTrue.setOnClickListener {
             answer(true)
-
+            it.isClickable = false
+            buttonFalse.isClickable = false
+            if(!it.isClickable){
+                it.backgroundTintMode = PorterDuff.Mode.CLEAR
+            }
         }
+
         buttonFalse.setOnClickListener {
             answer(false)
-        }
-
-        buttonNext.setOnClickListener {
-            if(index == questions.size-1) index = 0 else index++
-            textQuestion.setText(questions[index].source)
+            it.isClickable = false
+            buttonTrue.isClickable = false
+            if(!it.isClickable){
+                it.backgroundTintMode = PorterDuff.Mode.CLEAR
+            }
         }
     }
-    fun answer(answer: Boolean) {
-        if(questions[index].answer == answer){
+
+
+    private fun answer(answer: Boolean) {
+        if(viewModel.currentAnswer() == answer){
             Toast.makeText(this,"True",Toast.LENGTH_SHORT).show()
         }else{
             Toast.makeText(this,"False",Toast.LENGTH_SHORT).show()
         }
     }
+    private fun changeQuestion(indexDirection: IndexDirection){
+        when(indexDirection){
+            IndexDirection.NEXT -> {
+                textQuestion.setText(viewModel.currentQuestion())
+                viewModel.index++
+                viewModel.currentIndex()
+                buttonTrue.isClickable = true
+                buttonFalse.isClickable = true
+                buttonTrue.backgroundTintMode = PorterDuff.Mode.DARKEN
+                buttonFalse.backgroundTintMode = PorterDuff.Mode.DARKEN
+            }
+            IndexDirection.PREVIOUS -> {
+                textQuestion.setText(viewModel.currentQuestion())
+                viewModel.index --
+                viewModel.currentIndex()
+                buttonTrue.isClickable = true
+                buttonFalse.isClickable = true
+                buttonTrue.backgroundTintMode = null
+                buttonFalse.backgroundTintMode = null
+            }
+        }
+
+    }
+
+    enum class IndexDirection{
+        NEXT,
+        PREVIOUS
+    }
 }
+
