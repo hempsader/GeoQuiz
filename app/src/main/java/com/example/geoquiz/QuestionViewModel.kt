@@ -23,4 +23,5 @@ class QuestionViewModel: ViewModel() {
             index = questions.size-1
         }
     }
- }
+    fun questionIndex(index: Int) = questions[index].source
+}
