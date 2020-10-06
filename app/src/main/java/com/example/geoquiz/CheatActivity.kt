@@ -18,7 +18,12 @@ class CheatActivity : AppCompatActivity() {
 
         val index = intent.extras?.getInt("key") ?: 0
         question.setText(viewModel.questionIndex(index))
-        intent.putExtra("result","SUPER")
+
+        buttonCheat.setOnClickListener {
+            val intent = intent.putExtra("result","SUPER")
+            setResult(RESULT_OK,intent)
+            finish()
+        }
     }
 
 }

@@ -4,21 +4,15 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.PorterDuff
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.ActivityResultCallback
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.contract.ActivityResultContracts.GetContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import kotlinx.android.synthetic.main.activity_main.*
 
- const val KEY = "key"
+const val KEY = "key"
 class MainActivity : AppCompatActivity() {
     private lateinit var buttonTrue: Button
     private lateinit var buttonFalse: Button
@@ -29,6 +23,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var imageButtonPrevious: ImageButton
     private lateinit var viewModel: QuestionViewModel
     private lateinit var buttonCheat: Button
+    private lateinit var cheatText: TextView
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,10 +34,22 @@ class MainActivity : AppCompatActivity() {
         textQuestion = findViewById(R.id.question)
         viewModel =  ViewModelProvider(this).get(QuestionViewModel().javaClass)
         buttonCheat = findViewById(R.id.button_cheat)
+        cheatText = findViewById(R.id.cheat_text)
+
+        var result: String? = " "
+        val startForResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
+            if(it.resultCode == RESULT_OK){
+                it.data?.let {
+                 val string  =   it.getStringExtra("result")?: "Nothing"
+                    cheatText.text = string
+                }
+            }
+        }
+        Toast.makeText(this,result ?: " ",Toast.LENGTH_SHORT).show()
 
         buttonCheat.setOnClickListener {
             val intent = Intent(this,CheatActivity::class.java)
-            //https://pluu.github.io/blog/android/2020/05/01/migation-activity-result/
+            startForResult.launch(intent)
         }
 
 
